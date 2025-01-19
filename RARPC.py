@@ -69,14 +69,15 @@ def timeDifferenceFromNow(timeStamp):
     differenceInMinutes = abs((target_time - current_time).total_seconds() / 60)
     return int(differenceInMinutes)
 
-def isDiscordRunning():
-    # Check if discord.exe is in the list of running processes
-    for proc in psutil.process_iter(['name']):
-        if 'discord.exe' in proc.info['name'].lower():
-            print(Fore.GREEN + "Discord is running.")
-            return True
-    print(Fore.RED + "Discord is not running.")
-    return False
+def isDiscordRPCAvailable(RPC):
+    try:
+        RPC.connect()
+        RPC.close()
+        print(Fore.GREEN + "Discord RPC is available.")
+        return True
+    except:
+        print(Fore.RED + "Discord RPC is not available.")
+        return False
 
 def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements):
     button1Link = None
@@ -109,10 +110,15 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
 
 def setup_config():
     config_file = open("config.ini","w")
-    print(f'Enter RetroAchievements username: ')
-    usr = str(input())
-    print(f'Enter RetroAchievements api_key: ')
-    api = str(input())
+    usr = ""
+    api = ""
+
+    if not os.getenv('RETROACHIEVEMENTS_USERNAME'):
+        print(f'Enter RetroAchievements username: ')
+        usr = str(input())
+    if not os.getenv('RETROACHIEVEMENTS_API_KEY'):
+        print(f'Enter RetroAchievements api_key: ')
+        api = str(input())
 
     data = f"""
 [DISCORD]
@@ -150,19 +156,19 @@ def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
     
-    username = config.get('DISCORD', 'username')
-    api_key = config.get('DISCORD', 'api_key')
+    username = os.getenv('RETROACHIEVEMENTS_USERNAME', config.get('DISCORD', 'username'))
+    api_key = os.getenv('RETROACHIEVEMENTS_API_KEY', config.get('DISCORD', 'api_key'))
     isDisplayUsername = config.getboolean('SETTINGS', 'displayUsername')
     keepRunning = config.getboolean('SETTINGS', 'keepRunning')
     timeoutInMinutes = config.getint('SETTINGS', 'timeoutInMinutes')
     refreshRateInSeconds = config.getint('SETTINGS', 'refreshRateInSeconds')
 
-    client_id = "1320752097989234869"
+    client_id = os.getenv('DISCORD_CLIENT_ID', "1320752097989234869")
 
     RPC = Presence(client_id)
-    print(Fore.CYAN + "Connecting to Discord App...")
+    print(Fore.CYAN + "Checking Discord RPC availability...")
 
-    while(isDiscordRunning() == False):
+    while(isDiscordRPCAvailable(RPC) == False):
         print(Fore.RED + "Retrying in 10 seconds...")
         time.sleep(10)
 
@@ -179,29 +185,38 @@ def main():
     while True:
         warnings.filterwarnings("ignore")
 
-        # For getting the rich presence message
-        userProfile = getUserProfile(api_key, username)
+        try:
+            # For getting the rich presence message
+            userProfile = getUserProfile(api_key, username)
 
-        # For getting the recently played game
-        recentlyPlayedGame = getUserRecentlyPlayedGame(api_key, username, 1)
+            # For getting the recently played game
+            recentlyPlayedGame = getUserRecentlyPlayedGame(api_key, username, 1)
 
-        # Getting achievements data
-        gameInfoAndUserProgress = getGameInfoAndUserProgress(api_key, username, recentlyPlayedGame['GameID'])
-        gameBeatenAchievements = getBeatenAchievements(gameInfoAndUserProgress)
+            # Getting achievements data
+            gameInfoAndUserProgress = getGameInfoAndUserProgress(api_key, username, recentlyPlayedGame['GameID'])
+            gameBeatenAchievements = getBeatenAchievements(gameInfoAndUserProgress)
 
-        if(keepRunning == False):
-            if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes):
-                # print("Updating presence...")
-                if(isRPCRunning == False):
-                    start_time = int(time.time())
-                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
-                isRPCRunning = True
+            if(keepRunning == False):
+                if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes):
+                    # print("Updating presence...")
+                    if(isRPCRunning == False):
+                        start_time = int(time.time())
+                    updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
+                    isRPCRunning = True
+                else:
+                    # print("Presence cleared...")
+                    RPC.clear()
+                    isRPCRunning = False
             else:
-                # print("Presence cleared...")
-                RPC.clear()
-                isRPCRunning = False
-        else:
-            updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
+                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
+        except Exception as e:
+            print(Fore.RED + f"Error during presence update: {e}")
+            isRPCRunning = False
+            print(Fore.CYAN + "Rechecking Discord RPC availability...")
+            while(isDiscordRPCAvailable(RPC) == False):
+                print(Fore.RED + "Retrying in 10 seconds...")
+                time.sleep(10)
+            RPC.connect()
 
         time.sleep(refreshRateInSeconds)
         

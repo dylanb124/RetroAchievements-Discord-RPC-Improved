@@ -147,6 +147,10 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# virtual python environment
+bin
+pyvenv.cfg
+
 # Pyre type checker
 .pyre/
 

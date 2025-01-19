@@ -28,6 +28,8 @@ _Note: Running it silently/in the background isn't allowed with the `exe` file. 
 5. Go to Discord > User Settings > Activity Privacy. Toggle on `Share your detected activity with others.`
 6. Run the `run.bat` file, enter your credentials, `username` and `api key` from RetroAchievements.
 
+Note: You may alternatively store your credentials via environment variables `RETROACHIEVEMENTS_USERNAME` and `RETROACHIEVEMENTS_API_KEY`. If set, they will be used by default.
+
 After running the `run.bat` file, a `config.ini` file will be created in the same directory. The credentials that you've submitted are stored in this config file.
 
 ### If you want to run the batch file in the background:
