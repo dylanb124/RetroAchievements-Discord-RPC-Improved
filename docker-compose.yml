@@ -6,3 +6,5 @@ services:
     restart: always
     env_file:
       - .env
+    volumes:
+      - /run/user/1000/discord-ipc-0:/run/user/1000/discord-ipc-0
