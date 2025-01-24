@@ -6,5 +6,6 @@ services:
     restart: always
     env_file:
       - .env
+    network_mode: host
     volumes:
       - /run/user/1000/discord-ipc-0:/run/user/1000/discord-ipc-0

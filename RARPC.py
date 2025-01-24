@@ -88,8 +88,8 @@ def isDiscordRPCAvailable(RPC):
         RPC.close()
         log_with_timestamp("Discord RPC is available.", Fore.GREEN)
         return True
-    except:
-        log_with_timestamp("Discord RPC is not available.", Fore.RED)
+    except Exception as e:
+        log_with_timestamp(f"Discord RPC is not available: {e}", Fore.RED)
         return False
 
 def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements):
@@ -179,7 +179,7 @@ def main():
     client_id = os.getenv('DISCORD_CLIENT_ID', "1320752097989234869")
 
     RPC = Presence(client_id)
-    print(Fore.CYAN + "Checking Discord RPC availability...")
+    log_with_timestamp("Checking Discord RPC availability...", Fore.CYAN)
 
     while(isDiscordRPCAvailable(RPC) == False):
         log_with_timestamp("Retrying in 10 seconds...", Fore.RED)
@@ -190,8 +190,8 @@ def main():
 
     log_with_timestamp("Connected!", Fore.MAGENTA)
 
-    print("Timeout in minutes: ", timeoutInMinutes)
-    print("Refresh rate in seconds: ", refreshRateInSeconds)
+    log_with_timestamp(f"Timeout in minutes: {timeoutInMinutes}", Fore.CYAN)
+    log_with_timestamp(f"Refresh rate in seconds: {refreshRateInSeconds}", Fore.CYAN)
 
     start_time = int(time.time())
 
