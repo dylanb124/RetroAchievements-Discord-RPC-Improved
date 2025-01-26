@@ -59,34 +59,6 @@ If you want to keep the rich presence running, you can just edit the `config.ini
 
 Note: dylanb124 is working on a solution to run this in the background after device shutdown/reboot, such as via systemd. Currently, there are issues accessing the Discord RPC when the service is run via systemd.
 
-## Instructions - Docker
-
-### Prerequisites
-- Ensure you have Docker and Docker Compose installed on your system.
-- Create a `.env` file in the project directory with the following content:
-    ```dotenv
-    RETROACHIEVEMENTS_USERNAME=your_username
-    RETROACHIEVEMENTS_API_KEY=your_api_key
-    DISCORD_CLIENT_ID=your_discord_client_id
-    ```
-
-### Steps
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/your-repo/RetroAchievements-Discord-RPC-Improved.git
-    cd RetroAchievements-Discord-RPC-Improved
-    ```
-2. Build the Docker image:
-    ```sh
-    docker-compose build
-    ```
-3. Run the Docker container:
-    ```sh
-    docker-compose up -d
-    ```
-
-This setup will ensure that the script runs inside a Docker container and automatically restarts if it stops. The environment variables are passed to the container from the `.env` file.
-
 ## FAQ
 ### How to turn off username display?
 1. If ever you don't want your username to have a redirection button on your Discord RP, just edit the `config.ini` file and modify the value inside the `displayUsername` to `False`. By default, this is `True`. _Notice the capital letters in the True and False as wrong cases may result to an error._
